@@ -1,0 +1,56 @@
+#!/bin/bash
+
+echo 'test' > /home/ec2-user/user-script-output.txt
+sudo yum install -y wget 
+sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo 
+sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key 
+sudo yum install -y ruby jenkins java python-devel openssl-devel libffi-devel
+gem install aws-sdk
+sudo service jenkins start 
+
+cat << EOF > s3_script.rb
+#!/usr/bin/ruby
+require 'aws-sdk'
+
+Aws.config.update({
+  region: 'us-west-2',
+  credentials: Aws::Credentials.new('AKIAIJFTJJPQT4RRQTDQ', 'RXwmdWWdAl5TqTalAQBBbonGkuP4oruBOI9UYik0')
+})
+
+bucket_name =  ARGV[0]
+file_name= ARGV[1]
+s3 = Aws::S3::Resource.new(region: 'us-west-2')
+bucket = s3.bucket(bucket_name)
+operation = 'list' # default
+operation = ARGV[2]
+case operation
+when 'download'
+ bucket.object(file_name,).get(response_target: './' + file_name)
+when 'upload'
+ if file_name == nil
+ puts "You must enter the name of the file to upload to S3!"
+ exit
+ end
+ if bucket.exists?
+ name = File.basename file_name
+ # Check if file is already in bucket
+ if bucket.object(name).exists?
+ puts "#{name} already exists in the bucket"
+ s3.bucket(bucket_name).object(name).delete
+ obj = s3.bucket(bucket_name).object(name)
+ obj.upload_file(file_name)
+ puts "Uploaded '%s' to S3!" % name
+ else
+ obj = s3.bucket(bucket_name).object(name)
+ obj.upload_file(file_name)
+ puts "Uploaded '%s' to S3!" % name
+ end
+ else
+ NO_SUCH_BUCKET % bucket_name
+ end
+end
+
+EOF
+ruby s3_script.rb devops-aws-bucket-tr jenkins.tar download
+
+sudo tar xvf jenkins.tar -C /
