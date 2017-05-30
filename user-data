@@ -14,7 +14,7 @@ require 'aws-sdk'
 
 Aws.config.update({
   region: 'us-west-2',
-  credentials: Aws::Credentials.new('AKIAIJFTJJPQT4RRQTDQ', 'RXwmdWWdAl5TqTalAQBBbonGkuP4oruBOI9UYik0')
+  credentials: Aws::Credentials.new('', '')
 })
 
 bucket_name =  ARGV[0]
