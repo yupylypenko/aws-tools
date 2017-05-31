@@ -53,4 +53,4 @@ end
 EOF
 ruby s3_script.rb devops-aws-bucket-tr jenkins.tar download
 
-sudo tar xvf jenkins.tar -C /
+sudo tar xvf jenkins.tar.gz -C /
