@@ -6,7 +6,6 @@ sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenk
 sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key 
 sudo yum install -y ruby jenkins java python-devel openssl-devel libffi-devel
 gem install aws-sdk
-sudo service jenkins start 
 
 cat << EOF > s3_script.rb
 #!/usr/bin/ruby
@@ -54,3 +53,5 @@ EOF
 ruby s3_script.rb devops-aws-bucket-tr jenkins.tar.gz download
 
 sudo tar xvf jenkins.tar.gz -C /
+
+sudo service jenkins restart
